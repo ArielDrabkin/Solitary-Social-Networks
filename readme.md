@@ -6,14 +6,35 @@ This repository contains the code and data for a data science project that explo
 The social structure of different species has been studied using social networks, which capture encounters or interactions between individuals in a population. However, the social networks of extremely solitary species, like the Sinai chameleon, have not been explored extensively. This project aims to fill this gap by investigating the potential for microorganism transmission in extreme solitary species.
 
 ## Dataset
-The dataset used in this project consists of 851 records of chameleon sleeping locations collected in two field sites near Ashalim. The data was collected monthly from 2009 to 2017, covering a period of six full years (2012-2017). It includes a total of 880 sleeping locations.
+The dataset used in this project consists of 1984 records of chameleon sleeping locations collected in two field sites near Ashalim, Israel. The data was collected monthly from 2009 to 2017, covering a period of six full years (2012-2017). It includes a total of 880 sleeping locations.
 
 ## Methods
-The analysis was performed using R language and various packages such as geosphere and igraph. The following steps were followed to construct the social network:
 
 1. Calculated the distance between all capture points of individual chameleons using the geosphere package.
 2. Identified overlaps and close distances between individuals to determine encounters.
 3. Constructed a "Time - Lag" social network based on the number of same sites (i.e., strength of interactions) using the igraph package.
+
+## Methods
+The analysis was performed using R language and various packages such as geosphere and igraph. The following steps were followed to construct the social network:
+
+### Part 1: Checking which point is in which polygon
+1. Fixed the list of coordinates associated with the road using the geosphere package.
+2. Extracted azimuth information from the polygons raster file.
+
+### Part 2: Correcting coordinates
+1. Read and merged data from AzPolygons.csv and cham-by-polygon.csv files using the sp and rgdal packages.
+2. Calculated the corrected coordinates based on azimuth and quarter.
+3. Checked and fixed angles outside the range of 0-360 using R base functions.
+
+### Part 3: Checking distances between points
+1. Read and converted coordinates to a spatial data frame using the sp package.
+2. Created a template of all possible point combinations.
+3. Calculated distances between each pair of points using the distGeo function from the geosphere package.
+
+### Part 4: Creating the social network
+1. Created a graph object and adjacency matrix using the igraph package.
+2. Calculated weighted degrees and average weighted degree using the igraph package.
+3. Calculated betweenness centrality and average betweenness centrality using the igraph package.
 
 ## Results
 The analysis revealed the presence of a social network in the Sinai chameleon population for each year studied. The social networks varied in complexity and were based on different numbers of encounters between individuals. Notably, 2015 had the most complicated social network with 319 encounters, while 2013 had the fewest (89) encounters and the simplest social network.
