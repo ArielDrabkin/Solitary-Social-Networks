@@ -9,12 +9,6 @@ The social structure of different species has been studied using social networks
 The dataset used in this project consists of 1984 records of chameleon sleeping locations collected in two field sites near Ashalim, Israel. The data was collected monthly from 2009 to 2017, covering a period of six full years (2012-2017). It includes a total of 880 sleeping locations.
 
 ## Methods
-
-1. Calculated the distance between all capture points of individual chameleons using the geosphere package.
-2. Identified overlaps and close distances between individuals to determine encounters.
-3. Constructed a "Time - Lag" social network based on the number of same sites (i.e., strength of interactions) using the igraph package.
-
-## Methods
 The analysis was performed using R language and various packages such as geosphere and igraph. The following steps were followed to construct the social network:
 
 ### Part 1: Checking which point is in which polygon
