@@ -16,7 +16,7 @@ The analysis was performed using R language and various packages such as geosphe
 2. Extracted azimuth information from the polygons raster file.
 
 ### Part 2: Correcting coordinates
-1. Read and merged data from AzPolygons.csv and cham-by-polygon.csv files using the sp and rgdal packages.
+1. Read and merged data using the sp and rgdal packages.
 2. Calculated the corrected coordinates based on azimuth and quarter.
 3. Checked and fixed angles outside the range of 0-360 using R base functions.
 
