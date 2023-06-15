@@ -1,0 +1,339 @@
+---
+title: "SolitarySocialNetwork"
+author: "Ariel Drabkin and Amos Bouskila"
+output: html_document
+---
+# Solitary Social Networks
+
+## Part 1 - Checking Points and Associated Polygons
+
+In order to accurately determine the polygon associated with each point, it is necessary to correct the list of coordinates that lie on the road. Each coordinate point corresponds to a specific polygon. In the subsequent step (Part 2), we will extract the azimuth of the polygon and utilize it to calculate the fixed coordinates. It is not a concern if the final fixed point falls outside the polygon, such as in cases where d=40 m. It is important that all original points reside within a polygon to obtain the azimuth.
+
+The process of finding the polygon for each observation is based on the following resource:
+https://www.nceas.ucsb.edu/scicomp/usecases/point-in-polygon
+
+Raster manipulation is performed using the techniques described in the following resource:
+http://neondataskills.org/R/Raster-Data-In-R/
+
+
+```{r}
+rm(list=ls()) # Clearing previous run if necessary
+
+dat <- read.csv("Chameleon2016.csv") # Reading the file in CSV format
+names(dat) # Displaying the column names, which should match the list above
+class(dat) # Verifying the class of the data (should be a data frame)
+nrow(dat)
+dat <- dat[complete.cases(dat[, 6:7]),] # Removing missing values and empty rows that were mistakenly included in the dataset
+
+class(dat) # Verifying that the class remains unchanged
+nrow(dat) # Checking the number of rows after removing rows with missing values
+
+summary(dat) # Checking the maximum and minimum values of each column to ensure the correctness of the data.
+
+```
+
+If everything appears to be in order, we can proceed with the following R commands that simulate GIS operations:
+
+```{r}
+# Load the required packages: raster, sp, and rgdal
+library(sp)
+library(rgdal)
+library(raster)
+
+# Read polygons from the Shapefile. Specify the layer name without the file extension, and it will select the necessary files.
+
+PolyBsor <- readOGR(dsn = ".", layer = "Polygon_w_fake")
+
+```
+
+Now let's work with the imported file:
+```{r}
+# Specify the coordinates for the dataset
+coordinates(dat) <- c("X1", "Y1")  
+
+x <- dat$X1  # Assign shorter names for convenience
+y <- dat$Y1
+
+# Convert the data to a SpatialPointsDataFrame object
+xy <- SpatialPointsDataFrame(
+  matrix(c(x, y), ncol = 2),
+  data.frame(ID = seq(1:length(x))),
+  proj4string = CRS("+proj=tmerc +lat_0=31.7343936111111 +lon_0=35.2045169444445 +k=1.0000067 +x_0=219529.584 +y_0=626907.39 +ellps=GRS80 +towgs84=-24.002400,-17.103200,-17.844400,-0.330090,-1.852690,1.669690,5.424800 +units=m +no_defs")
+)
+# Note: The parameters are based on Michael Dorman's equation for ITM7 (Verified in "Calibrate_GPS.R" and confirmed as correct for our GPS)
+
+# The points are currently projected. We need to transform them to degrees (longitude/latitude)
+xy <- spTransform(xy, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+# Note: The parameters are taken from Michael Dorman's equation for WGS 84
+
+# Inform R that the dat coordinates are in the same lat/lon reference system as the Polygons data
+# Note: This step assumes that both datasets are in the same reference system
+proj4string(dat) <- proj4string(PolyBsor)
+
+# Combine !is.na() with over() to perform the containment test
+inside.poly <- !is.na(over(dat, as(PolyBsor, "SpatialPolygons")))
+
+# Check the fraction of sightings that are inside a polygon
+mean(inside.poly)
+
+# Use 'over' again, this time with polygons as a SpatialPolygonsDataFrame object,
+# to determine which polygon (if any) contains each sighting.
+# Store the polygon name as an attribute of the chameleon data in a column called PolyBsor
+dat$PolyBsor <- over(dat, PolyBsor)$ID
+
+View(dat)  # Take a look at the augmented dataset, which now includes the polygon names in the new column on the right
+
+# Write the augmented chameleon dataset to a CSV file
+write.csv(dat, "cham-by-polygon.csv", row.names = TRUE)
+
+```
+## Part 2 - Correcting Coordinates
+
+The next step involves converting the locations of chameleons, which are currently on the road we drive. We need to add the distance in the correct direction (either R or L), taking into account the direction of travel for that 25 m segment.
+
+The data for the direction of polygons is provided in a file called "Bsor polygons with fake polygons.csv." For convenience, we have renamed this file to "AzPolygons.csv". This file contains the polygon name, azimuth, and a few other attributes that are currently not needed (we will extract the azimuth, which will be referred to as AZ1).
+
+```{r}
+# Better to erase values from the previous run at this stage
+rm(list = ls())
+
+# Read the first .csv file, "AzPolygons.csv," which contains the polygon names and their azimuths
+AzPoly <- read.csv("AzPolygons.csv")  # Make sure a copy of this file is in the working directory
+head(AzPoly)  # Take a quick look at the data
+# Read the second CSV file, "cham-by-polygon.csv," which we created in the previous step. It should be in the same directory as this Notebook.
+
+dat <- read.csv("cham-by-polygon.csv")  # Choose and read the CSV file
+names(dat)[20] <- "ID"  # Rename the ID column to a simpler name
+head(dat)  # Take a quick look at the data
+N1 <- nrow(dat) 
+
+dat <- dat[complete.cases(dat[, 5]),]  # Remove rows with missing values in the side column to avoid errors later on
+
+N2 <- nrow(dat)
+
+N1 - N2  # Show the number of rows that didn't have a side in the 5th column
+```
+```{r}
+# Add a column of azimuths from the polygons file (AzPoly) to the cham file, based on the common ID column
+dat <- merge(dat, AzPoly, by = c("ID"), all.x = TRUE)
+
+names(dat)[25] <- "Az1"  # Rename the ID column (in the last column, 26) to the desired name for future use
+names(dat)
+```
+Now let's proceed to add the angles based on the azimuths, now that we know the azimuths of the polygons for each observation.
+```{r}
+dat$add <- ifelse(dat$side == "L", -90, 90)  # Create an additional column with the angle to add, depending on whether it is on the L or R side
+# This is a vectorized version of an if-else statement
+
+dat$Az2 <- dat$Az1 + dat$add  # Az2 adds +90 or -90 to the Azimuth to obtain the new azimuth from road to chameleon
+
+# Check if there are angles outside the range of 0-360 and fix them in Az2 itself
+dat$Az2 <- ifelse(dat$Az2 < 0, dat$Az2 + 360, dat$Az2)
+dat$Az2 <- ifelse(dat$Az2 > 360, dat$Az2 - 360, dat$Az2)
+
+# Identify the quarter to which Az2 points. Different quarters have different treatments below.
+# This is a nested vectorized if-else statement
+dat$Quarter <- ifelse(dat$Az2 < 90, 1,
+                      ifelse(dat$Az2 > 89 & dat$Az2 < 180, 2,
+                             ifelse(dat$Az2 > 270, 4, 3)))
+
+# Create a column of the angle depending on the quarter
+# Need to refer to the drawing to understand the logic
+dat$angle <- ifelse(dat$Quarter == 1, dat$Az2,
+                    ifelse(dat$Quarter == 2, 180 - dat$Az2,
+                           ifelse(dat$Quarter == 3, dat$Az2 - 180, 360 - dat$Az2)))
+
+# Calculate the sine and cosine for each angle
+# Conversion to radians is required by multiplying with pi/180
+dat$sin <- sin(dat$angle * (pi / 180))
+dat$cos <- cos(dat$angle * (pi / 180))
+
+# Create columns for the new X and Y coordinates, depending on the quarter
+# Need to refer to the drawing to understand the logic
+dat$X2 <- ifelse(dat$Quarter == 1, dat$X1 + dat$dist * dat$sin,
+                 ifelse(dat$Quarter == 2, dat$X1 + dat$dist * dat$sin,
+                        ifelse(dat$Quarter == 3, dat$X1 - dat$dist * dat$sin, dat$X1 - dat$dist * dat$sin)))
+
+dat$Y2 <- ifelse(dat$Quarter == 1, dat$Y1 + dat$dist * dat$cos,
+                 ifelse(dat$Quarter == 2, dat$Y1 - dat$dist * dat$cos,
+                        ifelse(dat$Quarter == 3, dat$Y1 - dat$dist * dat$cos, dat$Y1 + dat$dist * dat$cos)))
+
+head(dat)  # Take a look at the first few lines of the updated dataset
+```
+Check the summary to verify that the angles are within the range of 0-360 as required. Also, check for any NA values in columns where they should not exist (e.g., coordinates).
+```{r}
+summary(dat)  # Check the maximum and minimum values of each column to ensure correctness
+
+write.csv(dat, file = "Fixed_Coords.csv")  # Write the data frame to a CSV file in the working directory
+```
+If everything is okay at this point, you can use the cleaned data file ("Fixed_Coords.csv") to obtain the correct X2 and Y2 coordinates for the original chameleon dataset for future use.
+
+## Part 3 - Checking Distances of Each Point from All Others
+
+In this part, we will check the distances between each point and all other points. This is based on a previously saved script called "cluster by distance.R." We will use the data file "Fixed_Coords.csv" for this analysis.
+
+```{r}  
+library(sp)
+library(rgdal)
+library(geosphere)
+library(dismo)
+library(rgeos)
+
+# Erase values from the previous run
+rm(list=ls())
+
+# Read the CSV file
+dat <- read.csv("Fixed_Coords.csv")  # Make sure the file is in the correct directory
+names(dat)  # Check the column names to ensure that X2 and Y2 are in columns 33 and 34
+dat <- dat[complete.cases(dat[, 33:34]),]  # Remove rows with missing values in the new X and Y columns
+
+# Extract the coordinates from the data file
+x <- dat$X2
+y <- dat$Y2
+nrow(dat)
+
+# Convert the data to a SpatialPointsDataFrame object
+xy <- SpatialPointsDataFrame(
+  matrix(c(x, y), ncol = 2),
+  data.frame(ID = seq(1:length(x))),
+  proj4string = CRS("+proj=tmerc +lat_0=31.7343936111111 +lon_0=35.2045169444445 +k=1.0000067 +x_0=219529.584 +y_0=626907.39 +ellps=GRS80 +towgs84=-24.002400,-17.103200,-17.844400,-0.330090,-1.852690,1.669690,5.424800 +units=m +no_defs")
+)
+# Parameters taken from Michael Dorman's equation for ITM7 (Checked in "Calibrate_GPS.R" and confirmed as correct for our GPS)
+
+# Transform the points to degrees (longitude/latitude)
+xy <- spTransform(xy, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+# Parameters taken from Michael Dorman's equation for WGS 84
+
+# Convert the points to a data frame
+xxyy <- as.data.frame(xy)   
+xxyy
+
+# Add the coordinates to the original data
+dat1 <- cbind(xxyy[, 2:3], dat)
+dat1
+names(dat1)
+# Extract the columns with coordinates and the ID of the chameleon
+try <- dat1[, 1:2]
+try2 <- cbind(try, dat1[, 7])
+head(try2)
+summary(try2)
+dataFr <- try2  # Assign the data frame from above
+names(dataFr) <- c("x","y", "ID")  # Make the column names uniform and simple
+
+View(dataFr)   # Take a look at the data
+
+# Create an empty data frame to include all possible combinations of pairs of chameleon points
+df2 <- data.frame(matrix(nrow = 0, ncol = 6)) 
+
+names(df2) <- c("x1","y1", "ID1", "x2","y2", "ID2") # Provide column names
+df2
+
+dataFr <- try2  # Assign the data frame from above
+names(dataFr) <- c("x","y", "ID")  # Make the column names uniform and simple
+View(dataFr)   # Take a look at the data
+
+# Create an empty data frame to include all possible combinations of pairs of chameleon points
+df2 <- data.frame(matrix(nrow = 0, ncol = 6)) 
+
+names(df2) <- c("x1","y1", "ID1", "x2","y2", "ID2") # Provide column names
+```
+>**Note:** The column names in the new data frame, df2, are not unique because they originate from two rows in dataFr that have the same names. This was necessary to combine the two sets of columns properly.
+
+```{r}
+class(df2)  # Verify that it is still a data frame
+
+ncol(df2)  # Verify that it has the desired dimensions
+nrow(df2)  # Verify that it has the desired dimensions
+
+N <- nrow(dataFr)  # Get the number of different points
+
+# Replace the loops with vectorized operations for efficiency
+ind <- seq_len(N)  # Create a sequence of numbers with the length of the dataset
+grid <- expand.grid(ind, ind)  # Create a template of all possible combinations of numbers in the sequence "ind"
+df2 <- cbind(dataFr[grid[, 1], ], dataFr[grid[, 2], ])  # Combine the columns of the original data set based on the template "grid"
+
+View(df2)  # Verify that all was done properly
+```
+Now we are ready to calculate the distances!
+```{r}
+Points <- nrow(df2)  # Get the number of combinations of points
+# Calculate the distance between the two points in each row
+dist <- distGeo(df2[, 1:2], df2[, 4:5])
+df3 <- cbind(df2, dist)  # Add the distance column to the data frame
+
+View(df3)  # Take a look at the updated data frame
+nrow(df3)  # Get the length of the file
+```
+As a side issue, let's check the distances between pairs of points that belong to the same individual. This can be useful to check for suspicious distances or to get an idea of the distances between different captures of the same individual.
+```{r}
+sameID <- subset(df3, df3[, 3] == df3[, 6])  # Check which pairs of points belong to the same individual
+View(sameID)
+write.csv(sameID, file = "SameId_Distances.csv")  # Write the data frame to a CSV file in the working directory
+```
+Now let's return to the main goal, which is the social network analysis. We will apply a subsetting filter to select distances less than 14 m, but we also need to avoid cases where the same animal is compared to itself.
+```{r}
+ForNet <- subset(df3, df3[, 3] != df3[, 6])  # Remove cases where the same ID appears in both rows
+
+# Change the column titles for clarity
+names(ForNet) <-  c("x1","y1", "ID1", "x2","y2", "ID2", "dist")
+ForNet <- subset(ForNet, dist < 14, select = c(ID1, ID2))  # Limit the accepted distance and select only the ID columns 
+
+write.csv(ForNet, file = "For_Network.csv")  # Save the data frame to a CSV file in the working directory
+
+# Alternatively, you can read the data from a saved file if needed
+ForNet <- read.csv("For_Network.csv")
+```
+## Part 4 - Creating the social network
+Now that we have the list of interacting individuals, we can proceed with creating the social network.
+
+```{r}
+# Load the necessary package for social network analysis (make sure to install it first)
+library(igraph)
+
+el <- as.matrix(ForNet[, 2:3])  # Choose the file saved as CSV
+elRaw <- el  # Keep the original numeric values if needed later
+
+el[, 1] <- as.character(el[, 1])  # Convert the vertex IDs to characters to ensure proper treatment by igraph
+el[, 2] <- as.character(el[, 2]) 
+
+g <- graph.edgelist(el, directed = FALSE)  # Create a graph from the edge list with no weights (only repetitions of pairs)
+
+View(g)  # Take a look at the graph
+
+a <- get.adjacency(g, sparse = FALSE)  # Create the adjacency matrix 
+# Set sparse=FALSE to include zeros in empty cells; if set to TRUE, dots will be used instead
+
+a  # Take a look at the adjacency matrix with weights
+```
+The following will create the list of edges and weights
+```{r}
+g <- graph.adjacency(a, weighted = TRUE)
+df <- get.data.frame(g)  # Create the list of edges and weights
+head(df)  # Show the first 6 rows of the list
+df  # Show the entire list of edges and weights
+write.csv(df, file = "ChamEdges.csv")  # Save the list as a CSV file
+```
+Prepare to plot the weighted graph.
+
+```{r}
+g.weight <- graph.adjacency(a, mode = "undirected", weighted = TRUE)  # Convert the 'a' matrix to an object with weights
+
+summary(g.weight)  # Verify that the graph now includes weights
+
+# If you want to see the list of weights
+MyWeights <- E(g.weight)$weight / 1  # Divide the weights by a value if desired; if not, divide by 1
+MyWeights  # Show the outcome
+```
+Calculate the weighted degree (number of friends, weighted by the intensity of contact with each friend).
+```{r}
+WDegree <- strength(g.weight)  # Use the 'strength' function in the igraph package to calculate the weighted degree
+WDegree
+Avg.MDegree <- mean(WDegree)
+Avg.MDegree
+```
+Now calculate the betweenness centrality (individuals with high betweenness are those who transfer microbiome to others).
+```{r}
+WBetween <- betweenness(g.weight)
+WBetween
+Avg.MBetween <- mean(WBetween)
+Avg.MBetween
