@@ -11,7 +11,7 @@ The dataset used in this project consists of 1984 records of chameleon sleeping 
 ## Methods
 The analysis was performed using R language and various packages such as geosphere and igraph. The following steps were followed to construct the social network:
 
-### Part 1: Checking which point is in which polygon
+### Part 1: Addressing locations with polygons
 1. Fixed the list of coordinates associated with the road using the geosphere package.
 2. Extracted azimuth information from the polygons raster file.
 
@@ -36,10 +36,8 @@ The analysis revealed the presence of a social network in the Sinai chameleon po
 ## Discussion
 The study's findings suggest that the Sinai chameleon, despite being an extreme solitary reptile species without permanent burrows, exhibits a social network. This supports previous observations of social networks in solitary reptiles with permanent burrows. The existence of encounters among individuals in extreme solitary species can lead to microorganism transmission, potentially affecting individual fitness. Further research is required to understand the stability and transmission of microorganisms among reptiles, but the study provides a theoretical foundation and highlights the importance of collecting field data.
 
-## Citation
-If you use this code or dataset in your research, please cite the following references:
-
-- Godfrey, S. S. Networks and the ecology of parasite transmission: A framework for wildlife parasitology. Int. J. Parasitol. Parasites Wildl. 2, 235–245 (2013).
-- Ibrahim, A. A. Some aspects of ecology of the common chameleon, Chamaeleo chamaeleon musae ( Squamata : Chameleonidae) in northern Sinai, Egypt.
-- Shachal, R. and Bouskila, A., 2011. Unusual life history of Chamaeleo chamaeleon musae forms unique population dynamics (abstract), Isr. J. of Ecol. Evol. 57:267.
-- Sih, A., Spiegel, O., Godfrey, S., Leu, S. & Bull, C. M. Special Issue: Social Networks Integrating social networks, animal personalities, movement ecology and parasites: a framework with examples from a lizard
+## References
+Godfrey, S. S. Networks and the ecology of parasite transmission: A framework for wildlife parasitology. Int. J. Parasitol. Parasites Wildl. 2, 235–245 (2013).
+Ibrahim, A. A. Some aspects of ecology of the common chameleon, Chamaeleo chamaeleon musae ( Squamata : Chameleonidae) in northern Sinai, Egypt.
+Shachal, R. and Bouskila, A., 2011. Unusual life history of Chamaeleo chamaeleon musae forms unique population dynamics (abstract), Isr. J. of Ecol. Evol. 57:267.
+Sih, A., Spiegel, O., Godfrey, S., Leu, S. & Bull, C. M. Special Issue: Social Networks Integrating social networks, animal personalities, movement ecology and parasites: a framework with examples from a lizard
