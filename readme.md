@@ -24,7 +24,7 @@ The analysis was performed using R language and various packages such as geosphe
 The analysis revealed the presence of a social network in the Sinai chameleon population for each year studied. The social networks varied in complexity and were based on different numbers of encounters between individuals. Notably, 2015 had the most complicated social network with 319 encounters, while 2013 had the fewest (89) encounters and the simplest social network.
 <div align="center">
   <img src="All networks.jpg" width="500" height="320">
-  <p><strong>Figure 1: Time-lag social networks of an extreme solitary specie per year</strong></p>
+  <p><strong><em>Figure 1:</em> Time-lag social networks of an extreme solitary species per year</strong></p>
 </div>
 
 ## Discussion
