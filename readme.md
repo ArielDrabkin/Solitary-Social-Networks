@@ -1,4 +1,4 @@
-# Social Network Analysis in an Extreme Solitary Reptile Species
+# Social Network Analysis in an Extreme Solitary Species
 
 This repository contains the code and data for a data science project that explores the existence of a social network in an extreme type of solitary reptile species. The study focuses on the Sinai chameleon (Chamaeleo chamaeleon musae), an annual lizard that inhabits desert shrubs and does not have permanent burrows. The aim of the project is to examine the hypothesis that even in such extreme solitary species, a social network can be identified by analyzing the locations of the individuals.
 
