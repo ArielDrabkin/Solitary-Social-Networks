@@ -26,6 +26,7 @@ The analysis revealed the presence of a social network in the Sinai chameleon po
   <img src="All networks.jpg" width="500" height="320">
   <p><strong>Figure 1: Time-lag social networks of an extreme solitary specie per year</strong></p>
 </div>
+
 ## Discussion
 The study's findings suggest that the Sinai chameleon, despite being an extreme solitary reptile species without permanent burrows, exhibits a social network. This supports previous observations of social networks in solitary reptiles with permanent burrows. The existence of encounters among individuals in extreme solitary species can lead to microorganism transmission, potentially affecting individual fitness. Further research is required to understand the stability and transmission of microorganisms among reptiles, but the study provides a theoretical foundation and highlights the importance of collecting field data.
 
