@@ -6,9 +6,9 @@ This repository contains the code and data for a data science project that explo
 The social structure of different species has been studied using social networks, which capture encounters or interactions between individuals in a population. However, the social networks of extremely solitary species, like the Sinai chameleon, have not been explored extensively. This project aims to fill this gap by investigating the potential for microorganism transmission in extreme solitary species.
 
 ## Repository Structure
-* extreme_solitary_animal_Social_Network_poster.pdf: The final poster presenting the entire research conducted at BGU (Ben-Gurion University).
-* Solitary_Social_Networks.Rmd: A markdown notebook containing the R code used to construct the social network in the analysis.
-* README.md: This markdown file provides a description of the project and outlines the structure of the repository.
+* **extreme_solitary_animal_Social_Network_poster.pdf:** The final poster presenting the entire research conducted at BGU (Ben-Gurion University).
+* **Solitary_Social_Networks.Rmd:** A markdown notebook containing the R code used to construct the social network in the analysis.
+* **README.md:** This markdown file provides a description of the project and outlines the structure of the repository.
 
 ## Dataset
 The dataset used in this project consists of 851 records of chameleon sleeping locations collected in two field sites near Ashalim. The data was collected monthly from 2009 to 2017, covering a period of six full years (2012-2017). It includes a total of 880 sleeping locations.
