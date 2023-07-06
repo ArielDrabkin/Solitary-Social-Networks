@@ -21,7 +21,10 @@ The analysis was performed using R language and various packages such as geosphe
 3. Constructed a "Time - Lag" social network based on the number of same sites (i.e., strength of interactions) using the igraph package.
 
 ## Results
-![](All networks.jpg)
+<div align="center">
+  <img src="All networks.jpg" width="500" height="320">
+  <p><strong>Figure 1: Time-lag social networks of an extreme solitary specie per year</strong></p>
+</div>
 The analysis revealed the presence of a social network in the Sinai chameleon population for each year studied. The social networks varied in complexity and were based on different numbers of encounters between individuals. Notably, 2015 had the most complicated social network with 319 encounters, while 2013 had the fewest (89) encounters and the simplest social network.
 ## Discussion
 The study's findings suggest that the Sinai chameleon, despite being an extreme solitary reptile species without permanent burrows, exhibits a social network. This supports previous observations of social networks in solitary reptiles with permanent burrows. The existence of encounters among individuals in extreme solitary species can lead to microorganism transmission, potentially affecting individual fitness. Further research is required to understand the stability and transmission of microorganisms among reptiles, but the study provides a theoretical foundation and highlights the importance of collecting field data.
