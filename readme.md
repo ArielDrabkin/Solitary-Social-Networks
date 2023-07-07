@@ -22,6 +22,8 @@ The analysis was performed using R language and various packages such as geosphe
 1. Calculated the distance between all capture points of individual chameleons using the geosphere package.
 2. Identified overlaps and close distances between individuals to determine encounters.
 3. Constructed a "Time - Lag" social network based on the number of same sites (i.e., strength of interactions) using the igraph package.
+4. Visualized the social network using the igraph package.
+5. Calculated the network's statistical characteristics using the igraph package.
 
 ## Results
 The analysis revealed the presence of a social network in the Sinai chameleon population for each year studied. The social networks varied in complexity and were based on different numbers of encounters between individuals. Notably, 2015 had the most complicated social network with 319 encounters, while 2013 had the fewest (89) encounters and the simplest social network.
